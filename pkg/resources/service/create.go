@@ -119,17 +119,19 @@ func (s *Service) Deploy(clientset *client.ConfigSet) (string, error) {
 		return "", fmt.Errorf("Creating service: %s", err)
 	}
 
-	// TODO Add cronjob yaml into --dry output
-	for _, sched := range s.Schedule {
-		ps := s.pingSource(sched.Cron, sched.Data)
-		err := s.createPingSource(ps, clientset)
-		_ = err
+	for i, sched := range s.Schedule {
+		ps := s.pingSource(sched.Cron, sched.Data, service.UID)
+		// One kservice may have multiple cronjobs
+		// so we need to have an unique name.
+		// GenerateName is not suitable because in that case
+		// on each kservice update we'll create new PingSources
+		ps.Name = fmt.Sprintf("%s-%d", s.Name, i)
+		clientset.Log.Infof("Creating PingSource %q with %q schedule\n", ps.Name, ps.Spec.Schedule)
+		err := s.createOrUpdatePingSource(ps, clientset)
+		if err != nil {
+			clientset.Log.Errorf("Failed to create schedule: %v\n", err)
+		}
 	}
-	// if len(s.Schedule) != 0 {
-	// 	if err := s.CreateCronjobSource(clientset); err != nil {
-	// 		return "", fmt.Errorf("Creating cronjob source: %s", err)
-	// 	}
-	// }
 
 	if !client.Wait {
 		return fmt.Sprintf("Deployment started. Run \"tm -n %s describe service %s\" to see details", s.Namespace, s.Name), nil
@@ -270,7 +272,7 @@ func (s *Service) wait(clientset *client.ConfigSet) (string, error) {
 				}
 			}
 		case <-ticker.C:
-			return "", fmt.Errorf("watch service timeout")
+			return "", fmt.Errorf("Service %q didn't become Ready in time", s.Name)
 		}
 	}
 }

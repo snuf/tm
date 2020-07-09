@@ -49,7 +49,16 @@ type Function struct {
 	Environment map[string]string `yaml:"environment,omitempty"`
 	EnvSecrets  []string          `yaml:"env-secrets,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
-	// Schedule    []Schedule        `yaml:"schedule,omitempty"`
+	Schedule    []Schedule        `yaml:"schedule,omitempty"`
+}
+
+// Schedule struct contains a data in JSON format and a cron
+// that defines how often events should be sent to a function.
+// Description string may be used to explain events purpose.
+type Schedule struct {
+	Cron        string
+	Data        string
+	Description string
 }
 
 // Aos returns filesystem object with standard set of os methods implemented by afero package

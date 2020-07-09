@@ -183,10 +183,10 @@ func (s *Service) parseFunctions(functions map[string]file.Function, workdir ...
 		service := s.serviceObject(function)
 		service.Name = fmt.Sprintf("%s-%s", s.Name, name)
 		service.Labels = append(service.Labels, "service:"+s.Name)
+		service.Schedule = function.Schedule
 		if !file.IsRemote(service.Source) && len(workdir) == 1 {
 			service.Source = path.Join(workdir[0], service.Source)
 		}
-		// service.parseSchedule(function.Schedule)
 		services = append(services, service)
 	}
 	return services
@@ -202,15 +202,6 @@ func (s *Service) inList(name string, list []string) bool {
 	}
 	return listed
 }
-
-// func (s *Service) parseSchedule(schedule []file.Schedule) {
-// 	for _, cron := range schedule {
-// 		eventBody, err := yaml.Marshal(cron.Data)
-// 		if err != nil {
-// 			continue
-// 		}
-// 	}
-// }
 
 func (s *Service) setupParentVars(definition file.Definition) {
 	s.Annotations = make(map[string]string)
