@@ -23,7 +23,6 @@ import (
 
 	"github.com/triggermesh/tm/pkg/client"
 	"github.com/triggermesh/tm/pkg/file"
-	yaml "gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -187,7 +186,7 @@ func (s *Service) parseFunctions(functions map[string]file.Function, workdir ...
 		if !file.IsRemote(service.Source) && len(workdir) == 1 {
 			service.Source = path.Join(workdir[0], service.Source)
 		}
-		service.parseSchedule(function.Events)
+		// service.parseSchedule(function.Schedule)
 		services = append(services, service)
 	}
 	return services
@@ -204,23 +203,14 @@ func (s *Service) inList(name string, list []string) bool {
 	return listed
 }
 
-func (s *Service) parseSchedule(events []map[string]interface{}) {
-	for _, v := range events {
-		for eventType, event := range v {
-			eventBody, err := yaml.Marshal(event)
-			if err != nil {
-				continue
-			}
-			switch eventType {
-			case "schedule":
-				var cron file.Schedule
-				if err := yaml.Unmarshal(eventBody, &cron); err != nil {
-					continue
-				}
-			}
-		}
-	}
-}
+// func (s *Service) parseSchedule(schedule []file.Schedule) {
+// 	for _, cron := range schedule {
+// 		eventBody, err := yaml.Marshal(cron.Data)
+// 		if err != nil {
+// 			continue
+// 		}
+// 	}
+// }
 
 func (s *Service) setupParentVars(definition file.Definition) {
 	s.Annotations = make(map[string]string)

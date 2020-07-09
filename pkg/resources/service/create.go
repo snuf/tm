@@ -120,7 +120,12 @@ func (s *Service) Deploy(clientset *client.ConfigSet) (string, error) {
 	}
 
 	// TODO Add cronjob yaml into --dry output
-	// if len(s.Cronjob.Schedule) != 0 {
+	for _, sched := range s.Schedule {
+		ps := s.pingSource(sched.Cron, sched.Data)
+		err := s.createPingSource(ps, clientset)
+		_ = err
+	}
+	// if len(s.Schedule) != 0 {
 	// 	if err := s.CreateCronjobSource(clientset); err != nil {
 	// 		return "", fmt.Errorf("Creating cronjob source: %s", err)
 	// 	}
